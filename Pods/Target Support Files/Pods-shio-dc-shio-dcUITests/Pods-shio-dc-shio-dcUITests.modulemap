@@ -1,0 +1,6 @@
+framework module Pods_shio_dc_shio_dcUITests {
+  umbrella header "Pods-shio-dc-shio-dcUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
