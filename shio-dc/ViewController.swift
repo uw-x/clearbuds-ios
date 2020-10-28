@@ -21,15 +21,27 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var s3UrlLabel: UILabel!
     @IBOutlet weak var progressView: UIProgressView!
+    @IBOutlet weak var recordButton: UIButton!
     
     let testFilePath = Bundle.main.path(forResource: "Two Dumbs Up - uncoolclub", ofType: "mp3")
     var characteristicsDiscovered = 0
     var centralManager: CBCentralManager!
     var shioPri: CBPeripheral!
+    var shioPriMicDataCharacteristic: CBCharacteristic!
     var shioPriControlCharacteristic: CBCharacteristic!
     var shioSec: CBPeripheral!
+    var shioSecMicDataCharacteristic: CBCharacteristic!
     var shioSecControlCharacteristic: CBCharacteristic!
     var peripherals: [UUID: CBPeripheral] = [:]
+    
+    enum RecordingState: Int {
+        case stopped = 0
+        case recording = 1
+        case done = 2
+    }
+    
+    var recordingState = RecordingState.stopped
+    var pdmStarted = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,6 +62,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         shioPri.writeValue(data, for: shioPriControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
         shioSec.writeValue(data, for: shioSecControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
+        
+        pdmStarted = true
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -126,10 +140,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     let value: UInt8 = timeSyncMasterValue
                     let data = Data(_:[value])
                     peripheral.writeValue(data, for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+                } else if (characteristic.uuid == micDataCharUUID) {
+                    shioPriMicDataCharacteristic = characteristic
                 }
             } else if (thisShio == "shioSec") {
                 if (characteristic.uuid == controlCharUUID) {
                     shioSecControlCharacteristic = characteristic
+                } else if (characteristic.uuid == micDataCharUUID) {
+                    shioSecMicDataCharacteristic = characteristic
                 }
             }
         }
@@ -137,6 +155,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         // Once we've discovered characteristics for both shios, set a 1s callback to start the PDM stream
         if (characteristicsDiscovered == 2) {
             _ = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(pdmStartTimerCallback), userInfo: nil, repeats: false)
+        }
+    }
+    
+    @IBAction func tapRecordButton(_ sender: Any) {
+        // Start recording
+        if (recordingState == RecordingState.stopped && pdmStarted == true) {
+            recordingState = RecordingState.recording
+            shioPri.setNotifyValue(true, for: shioPriMicDataCharacteristic)
+            shioSec.setNotifyValue(true, for: shioSecMicDataCharacteristic)
+            recordButton.setTitle("STOP STREAM", for: .normal)
+        } else if (recordingState == RecordingState.recording) {
+            recordingState = RecordingState.done
+            shioPri.setNotifyValue(false, for: shioPriMicDataCharacteristic)
+            shioSec.setNotifyValue(false, for: shioSecMicDataCharacteristic)
+            recordButton.setTitle("UPLOAD", for: .normal)
+        } else if (recordingState == RecordingState.done) {
+            // Move upload audio code here
         }
     }
     
