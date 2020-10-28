@@ -17,6 +17,7 @@
 		09322D5D2547388700BC2A2A /* shio_dcUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09322D5C2547388700BC2A2A /* shio_dcUITests.swift */; };
 		09D2FC5C25474A31009A32DE /* AWSS3Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D2FC5B25474A31009A32DE /* AWSS3Manager.swift */; };
 		09D2FC6125474E7B009A32DE /* Two Dumbs Up - uncoolclub.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 09D2FC6025474E7B009A32DE /* Two Dumbs Up - uncoolclub.mp3 */; };
+		09D2FC672549E7DC009A32DE /* PeripheralTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D2FC662549E7DC009A32DE /* PeripheralTableViewCell.swift */; };
 		3A4FC317E2EA2D8C3B03B6A2 /* Pods_shio_dc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94C39E81E7E71412F6C77FEF /* Pods_shio_dc.framework */; };
 		A909BC907167F485AF4D8907 /* Pods_shio_dc_shio_dcUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13DAC6DA12BFA1B8398EF1DB /* Pods_shio_dc_shio_dcUITests.framework */; };
 		AF02123850055874E993AED4 /* Pods_shio_dcTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16CF458C35CD66EEF09CD7AA /* Pods_shio_dcTests.framework */; };
@@ -56,6 +57,7 @@
 		09322D5E2547388700BC2A2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		09D2FC5B25474A31009A32DE /* AWSS3Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSS3Manager.swift; sourceTree = "<group>"; };
 		09D2FC6025474E7B009A32DE /* Two Dumbs Up - uncoolclub.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Two Dumbs Up - uncoolclub.mp3"; sourceTree = "<group>"; };
+		09D2FC662549E7DC009A32DE /* PeripheralTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralTableViewCell.swift; sourceTree = "<group>"; };
 		13DAC6DA12BFA1B8398EF1DB /* Pods_shio_dc_shio_dcUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_shio_dc_shio_dcUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		16CF458C35CD66EEF09CD7AA /* Pods_shio_dcTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_shio_dcTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		59B3208780E20D755E78FB68 /* Pods-shio-dcTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-shio-dcTests.release.xcconfig"; path = "Target Support Files/Pods-shio-dcTests/Pods-shio-dcTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 				09322D3A2547388300BC2A2A /* AppDelegate.swift */,
 				09322D3C2547388300BC2A2A /* SceneDelegate.swift */,
 				09322D3E2547388300BC2A2A /* ViewController.swift */,
+				09D2FC662549E7DC009A32DE /* PeripheralTableViewCell.swift */,
 				09D2FC6025474E7B009A32DE /* Two Dumbs Up - uncoolclub.mp3 */,
 				09D2FC5B25474A31009A32DE /* AWSS3Manager.swift */,
 				09322D402547388300BC2A2A /* Main.storyboard */,
@@ -416,6 +419,7 @@
 				09322D3F2547388300BC2A2A /* ViewController.swift in Sources */,
 				09D2FC5C25474A31009A32DE /* AWSS3Manager.swift in Sources */,
 				09322D3B2547388300BC2A2A /* AppDelegate.swift in Sources */,
+				09D2FC672549E7DC009A32DE /* PeripheralTableViewCell.swift in Sources */,
 				09322D3D2547388300BC2A2A /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
