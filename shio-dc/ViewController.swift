@@ -4,6 +4,7 @@
 //
 //  Created by Maruchi Kim on 10/26/20.
 //  https://www.swiftdevcenter.com/upload-image-video-audio-and-any-type-of-files-to-aws-s3-bucket-swift/
+//  https://punchthrough.com/core-bluetooth-basics/
 
 import UIKit
 import CoreBluetooth
@@ -15,6 +16,7 @@ let controlCharUUID = CBUUID(string: "47ea1403-a0e4-554e-5282-0afcd3246970")
 
 let timeSyncMasterValue: UInt8 = 0x6D
 let audioStreamStartValue: UInt8 = 0xA5
+let timeSyncEnabled = false
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     
@@ -35,13 +37,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var peripherals: [UUID: CBPeripheral] = [:]
     
     enum RecordingState: Int {
-        case stopped = 0
-        case recording = 1
-        case done = 2
+        case waiting = 0
+        case ready = 1
+        case recording = 2
+        case done = 3
     }
     
-    var recordingState = RecordingState.stopped
-    var pdmStarted = false
+    var recordingState = RecordingState.waiting
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,7 +65,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         shioPri.writeValue(data, for: shioPriControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
         shioSec.writeValue(data, for: shioSecControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
         
-        pdmStarted = true
+        recordingState = RecordingState.ready
+        recordButton.setTitle("START STREAM", for: .normal)
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -137,9 +140,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if (characteristic.uuid == controlCharUUID) {
                     print("Assigning shioPri as time sync master")
                     shioPriControlCharacteristic = characteristic
-                    let value: UInt8 = timeSyncMasterValue
-                    let data = Data(_:[value])
-                    peripheral.writeValue(data, for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+                    if (timeSyncEnabled) {
+                        let value: UInt8 = timeSyncMasterValue
+                        let data = Data(_:[value])
+                        peripheral.writeValue(data, for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+                    }
                 } else if (characteristic.uuid == micDataCharUUID) {
                     shioPriMicDataCharacteristic = characteristic
                 }
@@ -158,9 +163,28 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if (peripheral.identifier == self.shioPri.identifier) {
+            print("shioPri mic streaming \(peripheral.identifier)")
+        } else if (peripheral.identifier == self.shioSec.identifier) {
+            print("shioSec mic streaming \(peripheral.identifier)")
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        guard let value = characteristic.value else { return }
+        
+        // Do something with data
+        if (peripheral.identifier == self.shioPri.identifier) {
+            print(value)
+        } else if (peripheral.identifier == self.shioSec.identifier) {
+            print(value)
+        }
+    }
+    
     @IBAction func tapRecordButton(_ sender: Any) {
         // Start recording
-        if (recordingState == RecordingState.stopped && pdmStarted == true) {
+        if (recordingState == RecordingState.ready) {
             recordingState = RecordingState.recording
             shioPri.setNotifyValue(true, for: shioPriMicDataCharacteristic)
             shioSec.setNotifyValue(true, for: shioSecMicDataCharacteristic)

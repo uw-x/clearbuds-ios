@@ -81,7 +81,7 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="fzH-oP-NuX"/>
                                 </constraints>
-                                <state key="normal" title="START STREAM">
+                                <state key="normal" title="LOADING">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <userDefinedRuntimeAttributes>
