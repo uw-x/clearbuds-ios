@@ -193,7 +193,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if (peripheral.identifier == self.shioPri.identifier) {
                 for i in 0...newPacketLength - 1 {
                     shioPriAudioBuffer.append(bufferPointerInt16[i])
-                    print(bufferPointerInt16[i])
                 }
 
             } else if (peripheral.identifier == self.shioSec.identifier) {
