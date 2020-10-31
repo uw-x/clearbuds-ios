@@ -8,6 +8,8 @@
 
 import UIKit
 import CoreBluetooth
+import AVFoundation
+import AVKit
 
 // MARK: Definitions
 let shioServiceUUID = CBUUID(string: "47ea1400-a0e4-554e-5282-0afcd3246970")
@@ -35,6 +37,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var shioSecMicDataCharacteristic: CBCharacteristic!
     var shioSecControlCharacteristic: CBCharacteristic!
     var peripherals: [UUID: CBPeripheral] = [:]
+    
+    // Actual audio buffers
+    var shioPriAudioBuffer : [Int16] = []
+    var shioSecAudioBuffer : [Int16] = []
     
     enum RecordingState: Int {
         case waiting = 0
@@ -173,13 +179,103 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let value = characteristic.value else { return }
-        
-        // Do something with data
-        if (peripheral.identifier == self.shioPri.identifier) {
-            print(value)
-        } else if (peripheral.identifier == self.shioSec.identifier) {
-            print(value)
+
+        // Get the length of the packer
+        let packetLength = Int(value.count)
+        assert(packetLength % 2 == 0) // We assume 16 bit integer, can't have half a data packet
+        let newPacketLength = Int(packetLength / 2)
+
+        // Convert the Byte Buffer to an Int 16 Buffer
+        value.withUnsafeBytes{ (bufferRawBufferPointer) -> Void in
+            let bufferPointerInt16 = UnsafeBufferPointer<Int16>.init(start: bufferRawBufferPointer.baseAddress!.bindMemory(to: Int16.self, capacity: 1), count: newPacketLength)
+
+            // Do something with data
+            if (peripheral.identifier == self.shioPri.identifier) {
+                for i in 0...newPacketLength - 1 {
+                    shioPriAudioBuffer.append(bufferPointerInt16[i])
+                    print(bufferPointerInt16[i])
+                }
+
+            } else if (peripheral.identifier == self.shioSec.identifier) {
+                for i in 0...newPacketLength - 1 {
+                    shioSecAudioBuffer.append(bufferPointerInt16[i])
+                }
+            }
         }
+    }
+    
+    // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
+    func createWavFile(audioBufferPri: [Int16], audioBufferSec: [Int16]) -> (String, String) {
+        
+        // Hard coded params for now
+        let sample_rate =  Float64(12500.0)
+        let outputFormatSettings = [
+            AVFormatIDKey:kAudioFormatLinearPCM,
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false,
+            AVSampleRateKey: sample_rate,
+            AVNumberOfChannelsKey: 1,
+            ] as [String : Any]
+        
+        print("First Array Count")
+        print(audioBufferPri.count)
+        print("Second Array Count")
+        print(audioBufferSec.count)
+        
+        // Use current time as the basis of the string
+        // Only a problem if two people upload at exactly same second
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd_HH.mm.ss"
+        let baseString = formatter.string(from: now)
+
+        let bufferFormat = AVAudioFormat(settings: outputFormatSettings)
+        
+        // Primary Buffer
+        let outputBufferPri = AVAudioPCMBuffer(pcmFormat: bufferFormat!, frameCapacity: AVAudioFrameCount(audioBufferPri.count))
+
+        for i in 0..<audioBufferPri.count {
+            outputBufferPri!.int16ChannelData!.pointee[i] = audioBufferPri[i]
+        }
+
+        outputBufferPri!.frameLength = AVAudioFrameCount( audioBufferPri.count )
+        
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileURLPri = URL(fileURLWithPath: baseString + "_L", relativeTo: directoryURL).appendingPathExtension("wav")
+        print(fileURLPri)
+        
+        let audioFilePri = try? AVAudioFile(forWriting: fileURLPri, settings: outputFormatSettings, commonFormat: AVAudioCommonFormat.pcmFormatInt16, interleaved: false)
+        
+        do{
+            try audioFilePri?.write(from: outputBufferPri!)
+        } catch let error as NSError {
+            print("error:", error.localizedDescription)
+        }
+        
+        // Secondary Buffer
+        let outputBufferSec = AVAudioPCMBuffer(pcmFormat: bufferFormat!, frameCapacity: AVAudioFrameCount(audioBufferSec.count))
+
+        for i in 0..<audioBufferSec.count {
+            // Primary buffer
+            outputBufferSec!.int16ChannelData!.pointee[i] = audioBufferSec[i]
+        }
+
+        outputBufferSec!.frameLength = AVAudioFrameCount( audioBufferSec.count )
+        
+        let fileURLSec = URL(fileURLWithPath: baseString + "_R", relativeTo: directoryURL).appendingPathExtension("wav")
+        print(fileURLSec)
+        
+        let audioFileSec = try? AVAudioFile(forWriting: fileURLSec, settings: outputFormatSettings, commonFormat: AVAudioCommonFormat.pcmFormatInt16, interleaved: false)
+        
+        do{
+            try audioFileSec?.write(from: outputBufferSec!)
+        } catch let error as NSError {
+            print("error:", error.localizedDescription)
+        }
+        
+        // Return the base string only, we can re-construct the URL later
+        return (baseString + "_L", baseString + "_R")
     }
     
     @IBAction func tapRecordButton(_ sender: Any) {
@@ -194,14 +290,37 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             shioPri.setNotifyValue(false, for: shioPriMicDataCharacteristic)
             shioSec.setNotifyValue(false, for: shioSecMicDataCharacteristic)
             recordButton.setTitle("UPLOAD", for: .normal)
+            
+            let (baseStringPri, baseStringSec) = createWavFile(audioBufferPri: shioPriAudioBuffer, audioBufferSec: shioSecAudioBuffer)
+            uploadAudio(baseString: baseStringPri)
+            uploadAudio(baseString: baseStringSec)
         } else if (recordingState == RecordingState.done) {
             // Move upload audio code here
         }
     }
     
+    func uploadAudio(baseString: String) {
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioURL = URL(fileURLWithPath: baseString, relativeTo: directoryURL).appendingPathExtension("wav")
+        AWSS3Manager.shared.uploadAudio(audioUrl: audioURL, uploadName: baseString + ".wav", progress: { [weak self] (progress) in
+            guard let strongSelf = self else { return }
+            strongSelf.progressView.progress = Float(progress)
+        }) { [weak self] (uploadedFileUrl, error) in
+            guard let strongSelf = self else { return }
+            if let finalPath = uploadedFileUrl as? String {
+                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
+            } else {
+                print("\(String(describing: error?.localizedDescription))")
+            }
+        }
+    }
+    
     @IBAction func tapUploadAudio(_ sender: Any) {
-        let audioUrl = URL(fileURLWithPath: testFilePath!)
-        AWSS3Manager.shared.uploadAudio(audioUrl: audioUrl, progress: { [weak self] (progress) in
+        // let audioUrl = URL(fileURLWithPath: testFilePath!)
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioURL = URL(fileURLWithPath: "myFile_L", relativeTo: directoryURL).appendingPathExtension("wav")
+        print(audioURL)
+        AWSS3Manager.shared.uploadAudio(audioUrl: audioURL, progress: { [weak self] (progress) in
             guard let strongSelf = self else { return }
             strongSelf.progressView.progress = Float(progress)
         }) { [weak self] (uploadedFileUrl, error) in
@@ -233,5 +352,4 @@ extension ViewController: UITableViewDataSource {
 
         return cell
     }
-
 }

@@ -53,6 +53,12 @@ class AWSS3Manager {
         self.uploadfile(fileUrl: audioUrl, fileName: fileName, contenType: "audio", progress: progress, completion: completion)
     }
     
+    // Same as before, but we can specify the string
+    func uploadAudio(audioUrl: URL, uploadName: String, progress: progressBlock?, completion: completionBlock?) {
+        print(uploadName)
+        self.uploadfile(fileUrl: audioUrl, fileName: uploadName, contenType: "audio", progress: progress, completion: completion)
+    }
+
     // Upload files like Text, Zip, etc from local path url
     func uploadOtherFile(fileUrl: URL, conentType: String, progress: progressBlock?, completion: completionBlock?) {
         let fileName = self.getUniqueFileName(fileUrl: fileUrl)
