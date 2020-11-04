@@ -367,6 +367,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if let finalPath = uploadedFileUrl as? String {
                 strongSelf.recordingState = RecordingState.ready
                 strongSelf.recordButton.setTitle("START STREAM", for: .normal)
+                
+                let alert = UIAlertController(title: "Upload Successful", message: "Thank you for taking the time to submit a voice recording for our project. Feel free to reach out to us if you have any questions!", preferredStyle: .alert)
+
+                alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
+                strongSelf.present(alert, animated: true)
+                
             } else {
                 print("\(String(describing: error?.localizedDescription))")
             }
