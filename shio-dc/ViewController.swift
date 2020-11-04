@@ -22,10 +22,17 @@ let timeSyncEnabled = true
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var s3UrlLabel: UILabel!
+    
+    @IBOutlet weak var appNameLabel: UILabel!
     @IBOutlet weak var progressView: UIProgressView!
     @IBOutlet weak var recordButton: UIButton!
+    @IBOutlet weak var shioLImageView: UIImageView!
+    @IBOutlet weak var shioRImageView: UIImageView!
+    @IBOutlet weak var shioLSearchingIndicatorView: UIActivityIndicatorView!
+    @IBOutlet weak var shioRSearchingIndicatorView: UIActivityIndicatorView!
+    @IBOutlet weak var shioLButton: UIButton!
+    @IBOutlet weak var shioRButton: UIButton!
+    
     
     let testFilePath = Bundle.main.path(forResource: "Two Dumbs Up - uncoolclub", ofType: "mp3")
     var characteristicsDiscovered = 0
@@ -54,12 +61,40 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         super.viewDidLoad()
         centralManager = CBCentralManager(delegate: self, queue: nil)
+        shioLImageView.isHidden = true
+        shioRImageView.isHidden = true
+        shioLSearchingIndicatorView.startAnimating()
+        shioRSearchingIndicatorView.startAnimating()
     }
     
     private func updateView() {
         let peripheralsDiscovered = peripherals.count > 0
         if peripheralsDiscovered {
-            tableView.reloadData()
+            if peripherals.count == 1 {
+                shioLSearchingIndicatorView.stopAnimating()
+                shioLSearchingIndicatorView.isHidden = true
+                shioLImageView.isHidden = false
+            } else if (peripherals.count == 2) {
+                shioRSearchingIndicatorView.stopAnimating()
+                shioRSearchingIndicatorView.isHidden = true
+                shioRImageView.isHidden = false
+            }
+        }
+    }
+    
+    private func updateViewDeviceBackground(peripheral: CBPeripheral, connected: Bool)
+    {
+        let color = connected ? UIColor(red: 84.0/255.0, green: 90.0/255.0, blue: 97.0/255.0, alpha: 1.0) : UIColor(red: 242.0/255.0, green: 242.0/255.0, blue: 247/255.0, alpha: 1.0)
+        if (peripheral.identifier == self.shioPri.identifier) {
+            shioLButton.backgroundColor = color
+            shioLSearchingIndicatorView.stopAnimating()
+            shioLSearchingIndicatorView.isHidden = true
+            shioLImageView.isHidden = false
+        } else if (peripheral.identifier == self.shioSec.identifier) {
+            shioRButton.backgroundColor = color
+            shioRSearchingIndicatorView.stopAnimating()
+            shioRSearchingIndicatorView.isHidden = true
+            shioRImageView.isHidden = false
         }
     }
     
@@ -68,8 +103,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let value: UInt8 = audioStreamStartValue
         let data = Data(_:[value])
         
-        shioPri.writeValue(data, for: shioPriControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
-        shioSec.writeValue(data, for: shioSecControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
+        if (shioPri.state == CBPeripheralState.connected) {
+            shioPri.writeValue(data, for: shioPriControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
+        } else {
+            print("ERROR shioPri not connectected")
+        }
+        
+        if (shioSec.state == CBPeripheralState.connected) {
+            shioSec.writeValue(data, for: shioSecControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
+            print("ERROR shioSec not connectected")
+        }
+        
         
         recordingState = RecordingState.ready
         recordButton.setTitle("START STREAM", for: .normal)
@@ -93,17 +137,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 peripherals.updateValue(peripheral, forKey: peripheral.identifier)
                 self.updateView()
                 
-                // Two shios discovered, connect to both and stop scanning
+                if (peripherals.count == 1) {
+                    self.shioPri = Array(peripherals)[0].value
+                    self.shioPri.delegate = self
+                    self.centralManager.connect(self.shioPri, options: nil)
+                }
+                
+                // Two shios discovered, connect to second and stop scanning
                 if (peripherals.count == 2) {
                     self.centralManager.stopScan()
                     
-                    self.shioPri = Array(peripherals)[0].value
-                    self.shioPri.delegate = self
-                    
                     self.shioSec = Array(peripherals)[1].value
                     self.shioSec.delegate = self
-                    
-                    self.centralManager.connect(self.shioPri, options: nil)
                     self.centralManager.connect(self.shioSec, options: nil)
                 }
             }
@@ -112,6 +157,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.discoverServices(nil)
+        updateViewDeviceBackground(peripheral: peripheral, connected: true)
         if (peripheral.identifier == self.shioPri.identifier) {
             print("Connected shioPri \(peripheral.identifier)")
         } else if (peripheral.identifier == self.shioSec.identifier) {
@@ -120,6 +166,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        updateViewDeviceBackground(peripheral: peripheral, connected: false)
+        characteristicsDiscovered = (characteristicsDiscovered > 0) ? (characteristicsDiscovered - 1) : 0
         if (peripheral.identifier == self.shioPri.identifier) {
             print("Disconnected shioPri \(peripheral.identifier)")
         } else if (peripheral.identifier == self.shioSec.identifier) {
@@ -136,13 +184,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
-        characteristicsDiscovered += 1
         let thisShio = (peripheral.identifier == self.shioPri.identifier) ? "shioPri" : "shioSec"
         print("\(thisShio) characteristics:")
+        characteristicsDiscovered += 1
         for characteristic in characteristics {
             print(characteristic)
             
             if (thisShio == "shioPri") {
+                
                 if (characteristic.uuid == controlCharUUID) {
                     print("Assigning shioPri as time sync master")
                     shioPriControlCharacteristic = characteristic
@@ -180,27 +229,34 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let value = characteristic.value else { return }
 
-        // Get the length of the packer
-        let packetLength = Int(value.count)
-        assert(packetLength % 2 == 0) // We assume 16 bit integer, can't have half a data packet
-        let newPacketLength = Int(packetLength / 2)
+        print("characteristic \(characteristic)")
+        
+        if (characteristic.uuid == micDataCharUUID) {
+            // Get the length of the packet
+            let packetLength = Int(value.count)
+            assert(packetLength % 2 == 0) // We assume 16 bit integer, can't have half a data packet
+            let newPacketLength = Int(packetLength / 2)
 
-        // Convert the Byte Buffer to an Int 16 Buffer
-        value.withUnsafeBytes{ (bufferRawBufferPointer) -> Void in
-            let bufferPointerInt16 = UnsafeBufferPointer<Int16>.init(start: bufferRawBufferPointer.baseAddress!.bindMemory(to: Int16.self, capacity: 1), count: newPacketLength)
+            // Convert the Byte Buffer to an Int 16 Buffer
+            value.withUnsafeBytes{ (bufferRawBufferPointer) -> Void in
+                let bufferPointerInt16 = UnsafeBufferPointer<Int16>.init(start: bufferRawBufferPointer.baseAddress!.bindMemory(to: Int16.self, capacity: 1), count: newPacketLength)
 
-            // Do something with data
-            if (peripheral.identifier == self.shioPri.identifier) {
-                for i in 0...newPacketLength - 1 {
-                    shioPriAudioBuffer.append(bufferPointerInt16[i])
-                }
+                // Do something with data
+                if (peripheral.identifier == self.shioPri.identifier) {
+                    for i in 0...newPacketLength - 1 {
+                        shioPriAudioBuffer.append(bufferPointerInt16[i])
+                    }
 
-            } else if (peripheral.identifier == self.shioSec.identifier) {
-                for i in 0...newPacketLength - 1 {
-                    shioSecAudioBuffer.append(bufferPointerInt16[i])
+                } else if (peripheral.identifier == self.shioSec.identifier) {
+                    for i in 0...newPacketLength - 1 {
+                        shioSecAudioBuffer.append(bufferPointerInt16[i])
+                    }
                 }
             }
+        } else if (characteristic.uuid == controlCharUUID) {
+            print("Control interval updated")
         }
+        
     }
     
     // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
@@ -304,10 +360,33 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }) { [weak self] (uploadedFileUrl, error) in
             guard let strongSelf = self else { return }
             if let finalPath = uploadedFileUrl as? String {
-                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
+//                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
             } else {
                 print("\(String(describing: error?.localizedDescription))")
             }
+        }
+    }
+    
+    @IBAction func tapShioLButton(_ sender: Any) {
+        if (shioPri.state == CBPeripheralState.connected) {
+            centralManager.cancelPeripheralConnection(shioPri)
+        } else {
+            shioLSearchingIndicatorView.startAnimating()
+            shioLImageView.isHidden = true
+            shioLSearchingIndicatorView.isHidden = false
+            self.centralManager.connect(self.shioPri, options: nil)
+        }
+        
+    }
+    
+    @IBAction func tapShioRButton(_ sender: Any) {
+        if (shioSec.state == CBPeripheralState.connected) {
+            centralManager.cancelPeripheralConnection(shioSec)
+        } else {
+            shioRSearchingIndicatorView.startAnimating()
+            shioRImageView.isHidden = true
+            shioRSearchingIndicatorView.isHidden = false
+            self.centralManager.connect(self.shioSec, options: nil)
         }
     }
     
@@ -324,7 +403,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }) { [weak self] (uploadedFileUrl, error) in
             guard let strongSelf = self else { return }
             if let finalPath = uploadedFileUrl as? String {
-                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
+//                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
             } else {
                 print("\(String(describing: error?.localizedDescription))")
             }
@@ -332,22 +411,32 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
 }
 
-extension ViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return peripherals.count
-    }
+extension UILabel {
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Dequeue Reusable Cell
-        let cell = tableView.dequeueReusableCell(withIdentifier: PeripheralTableViewCell.ReuseIdentifier, for: indexPath) as! PeripheralTableViewCell
+    @IBInspectable var kerning: Float {
+        get {
+            var range = NSMakeRange(0, (text ?? "").count)
+            guard let kern = attributedText?.attribute(NSAttributedString.Key.kern, at: 0, effectiveRange: &range),
+                let value = kern as? NSNumber
+                else {
+                    return 0
+            }
+            return value.floatValue
+        }
+        set {
+            var attText:NSMutableAttributedString
 
-        // Fetch peripheral
-        let index = indexPath.row
-        let peripheral = Array(peripherals)[index].value
+            if let attributedText = attributedText {
+                attText = NSMutableAttributedString(attributedString: attributedText)
+            } else if let text = text {
+                attText = NSMutableAttributedString(string: text)
+            } else {
+                attText = NSMutableAttributedString(string: "")
+            }
 
-        // Configure Cell
-        cell.peripheralLabel.text = peripheral.name
-
-        return cell
+            let range = NSMakeRange(0, attText.length)
+            attText.addAttribute(NSAttributedString.Key.kern, value: NSNumber(value: newValue), range: range)
+            self.attributedText = attText
+        }
     }
 }
