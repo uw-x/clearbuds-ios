@@ -3,7 +3,6 @@
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17126"/>
-        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -16,13 +15,9 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" fixedFrame="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="OVn-Ez-Nsv">
-                                <rect key="frame" x="120" y="666" width="150" height="4"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </progressView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zCv-Yr-0h8">
                                 <rect key="frame" x="30" y="772" width="354" height="60"/>
-                                <color key="backgroundColor" name="AccentColor"/>
+                                <color key="backgroundColor" red="0.96987646819999995" green="0.33592953990000002" blue="0.38741642040000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="fzH-oP-NuX"/>
                                 </constraints>
@@ -149,10 +144,15 @@
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="nKN-cY-16i">
                                 <rect key="frame" x="197" y="192.5" width="20" height="20"/>
                             </activityIndicatorView>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OVn-Ez-Nsv">
+                                <rect key="frame" x="30" y="768" width="354" height="4"/>
+                                <color key="tintColor" red="0.96987646819999995" green="0.33592953990000002" blue="0.38741642040000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                            </progressView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="OVn-Ez-Nsv" secondAttribute="trailing" constant="30" id="1bh-f0-ohR"/>
                             <constraint firstItem="peJ-1J-BzC" firstAttribute="centerX" secondItem="CKS-jD-XuD" secondAttribute="centerX" id="211-Zp-6eZ"/>
                             <constraint firstItem="JlX-Fp-eaP" firstAttribute="top" secondItem="haa-VN-2IY" secondAttribute="bottom" constant="30" id="2zl-LF-khD"/>
                             <constraint firstItem="haa-VN-2IY" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="30" id="3ez-Q5-czK"/>
@@ -174,6 +174,8 @@
                             <constraint firstItem="3IK-vy-ymj" firstAttribute="centerY" secondItem="6BR-t7-t82" secondAttribute="centerY" id="k9m-zw-1gN"/>
                             <constraint firstItem="3IK-vy-ymj" firstAttribute="centerX" secondItem="Sdl-pr-hWz" secondAttribute="centerX" id="lmf-dj-WC6"/>
                             <constraint firstItem="r9r-3o-4Cm" firstAttribute="centerX" secondItem="peJ-1J-BzC" secondAttribute="centerX" constant="2" id="neP-4J-ZUC"/>
+                            <constraint firstItem="zCv-Yr-0h8" firstAttribute="top" secondItem="OVn-Ez-Nsv" secondAttribute="bottom" id="oRL-Cs-cb6"/>
+                            <constraint firstItem="OVn-Ez-Nsv" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="pNu-ET-xcd"/>
                             <constraint firstItem="MTX-BQ-AIa" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="phJ-mB-Ckr"/>
                             <constraint firstItem="MTX-BQ-AIa" firstAttribute="top" secondItem="k0S-MP-vFq" secondAttribute="bottom" constant="6" id="r4e-Gr-HaG"/>
                             <constraint firstItem="nKN-cY-16i" firstAttribute="centerY" secondItem="r9r-3o-4Cm" secondAttribute="centerY" id="sHM-Yk-DOL"/>
@@ -202,8 +204,5 @@
     </scenes>
     <resources>
         <image name="bud-icon" width="128" height="128"/>
-        <namedColor name="AccentColor">
-            <color red="0.0" green="0.46000000000000002" blue="0.89000000000000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </namedColor>
     </resources>
 </document>

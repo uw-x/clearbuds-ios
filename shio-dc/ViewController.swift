@@ -65,6 +65,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         shioRImageView.isHidden = true
         shioLSearchingIndicatorView.startAnimating()
         shioRSearchingIndicatorView.startAnimating()
+        progressView.isHidden = true
     }
     
     private func updateView() {
@@ -106,12 +107,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if (shioPri.state == CBPeripheralState.connected) {
             shioPri.writeValue(data, for: shioPriControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
         } else {
-            print("ERROR shioPri not connectected")
+            print("ERROR shioPri not connected")
         }
         
         if (shioSec.state == CBPeripheralState.connected) {
             shioSec.writeValue(data, for: shioSecControlCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
-            print("ERROR shioSec not connectected")
+        } else {
+            print("ERROR shioSec not connected")
         }
         
         
@@ -133,11 +135,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         if let pname = peripheral.name {
             if (pname == "shio") {
-                print("Discovered a shio")
+                
                 peripherals.updateValue(peripheral, forKey: peripheral.identifier)
                 self.updateView()
                 
                 if (peripherals.count == 1) {
+                    print("Discovered first shio")
                     self.shioPri = Array(peripherals)[0].value
                     self.shioPri.delegate = self
                     self.centralManager.connect(self.shioPri, options: nil)
@@ -145,6 +148,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 
                 // Two shios discovered, connect to second and stop scanning
                 if (peripherals.count == 2) {
+                    print("Discovered second shio")
                     self.centralManager.stopScan()
                     
                     self.shioSec = Array(peripherals)[1].value
@@ -186,12 +190,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         guard let characteristics = service.characteristics else { return }
         let thisShio = (peripheral.identifier == self.shioPri.identifier) ? "shioPri" : "shioSec"
         print("\(thisShio) characteristics:")
-        characteristicsDiscovered += 1
+        
         for characteristic in characteristics {
             print(characteristic)
             
             if (thisShio == "shioPri") {
-                
                 if (characteristic.uuid == controlCharUUID) {
                     print("Assigning shioPri as time sync master")
                     shioPriControlCharacteristic = characteristic
@@ -201,12 +204,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         peripheral.writeValue(data, for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
                     }
                 } else if (characteristic.uuid == micDataCharUUID) {
+                    characteristicsDiscovered += 1
                     shioPriMicDataCharacteristic = characteristic
                 }
             } else if (thisShio == "shioSec") {
                 if (characteristic.uuid == controlCharUUID) {
                     shioSecControlCharacteristic = characteristic
                 } else if (characteristic.uuid == micDataCharUUID) {
+                    characteristicsDiscovered += 1
                     shioSecMicDataCharacteristic = characteristic
                 }
             }
@@ -228,8 +233,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let value = characteristic.value else { return }
-
-        print("characteristic \(characteristic)")
         
         if (characteristic.uuid == micDataCharUUID) {
             // Get the length of the packet
@@ -357,10 +360,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         AWSS3Manager.shared.uploadAudio(audioUrl: audioURL, uploadName: baseString + ".wav", progress: { [weak self] (progress) in
             guard let strongSelf = self else { return }
             strongSelf.progressView.progress = Float(progress)
+            
+            strongSelf.recordButton.setTitle(String(Int(100*progress)) + "%", for:.normal)
         }) { [weak self] (uploadedFileUrl, error) in
             guard let strongSelf = self else { return }
             if let finalPath = uploadedFileUrl as? String {
-//                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
+                strongSelf.recordingState = RecordingState.ready
+                strongSelf.recordButton.setTitle("START STREAM", for: .normal)
             } else {
                 print("\(String(describing: error?.localizedDescription))")
             }
@@ -368,6 +374,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func tapShioLButton(_ sender: Any) {
+        print("Tap shioLButton")
         if (shioPri.state == CBPeripheralState.connected) {
             centralManager.cancelPeripheralConnection(shioPri)
         } else {
@@ -380,6 +387,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func tapShioRButton(_ sender: Any) {
+        print("Tap shioRButton")
         if (shioSec.state == CBPeripheralState.connected) {
             centralManager.cancelPeripheralConnection(shioSec)
         } else {
@@ -387,26 +395,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             shioRImageView.isHidden = true
             shioRSearchingIndicatorView.isHidden = false
             self.centralManager.connect(self.shioSec, options: nil)
-        }
-    }
-    
-    
-//    deprecated
-    func testAudioUploadToS3(_ sender: Any) {
-        // let audioUrl = URL(fileURLWithPath: testFilePath!)
-        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let audioURL = URL(fileURLWithPath: "myFile_L", relativeTo: directoryURL).appendingPathExtension("wav")
-        print(audioURL)
-        AWSS3Manager.shared.uploadAudio(audioUrl: audioURL, progress: { [weak self] (progress) in
-            guard let strongSelf = self else { return }
-            strongSelf.progressView.progress = Float(progress)
-        }) { [weak self] (uploadedFileUrl, error) in
-            guard let strongSelf = self else { return }
-            if let finalPath = uploadedFileUrl as? String {
-//                strongSelf.s3UrlLabel.text = "Uploaded file url: " + finalPath
-            } else {
-                print("\(String(describing: error?.localizedDescription))")
-            }
         }
     }
 }
