@@ -18,7 +18,7 @@ let controlCharUUID = CBUUID(string: "47ea1403-a0e4-554e-5282-0afcd3246970")
 
 let timeSyncMasterValue: UInt8 = 0x6D
 let audioStreamStartValue: UInt8 = 0xA5
-let timeSyncEnabled = false
+let timeSyncEnabled = true
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     
@@ -205,7 +205,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
     func createWavFile(audioBufferPri: [Int16], audioBufferSec: [Int16]) -> (String, String) {
-        
         // Hard coded params for now
         let sample_rate =  Float64(12500.0)
         let outputFormatSettings = [
@@ -289,12 +288,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             shioPri.setNotifyValue(false, for: shioPriMicDataCharacteristic)
             shioSec.setNotifyValue(false, for: shioSecMicDataCharacteristic)
             recordButton.setTitle("UPLOAD", for: .normal)
-            
+        } else if (recordingState == RecordingState.done) {
             let (baseStringPri, baseStringSec) = createWavFile(audioBufferPri: shioPriAudioBuffer, audioBufferSec: shioSecAudioBuffer)
             uploadAudio(baseString: baseStringPri)
             uploadAudio(baseString: baseStringSec)
-        } else if (recordingState == RecordingState.done) {
-            // Move upload audio code here
         }
     }
     
@@ -314,7 +311,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    @IBAction func tapUploadAudio(_ sender: Any) {
+    
+//    deprecated
+    func testAudioUploadToS3(_ sender: Any) {
         // let audioUrl = URL(fileURLWithPath: testFilePath!)
         let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let audioURL = URL(fileURLWithPath: "myFile_L", relativeTo: directoryURL).appendingPathExtension("wav")
