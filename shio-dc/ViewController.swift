@@ -35,7 +35,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     let testFilePath = Bundle.main.path(forResource: "Two Dumbs Up - uncoolclub", ofType: "mp3")
-    var characteristicsDiscovered = 0
+    var connectionIntervalUpdated = 0
     var centralManager: CBCentralManager!
     var shioPri: CBPeripheral!
     var shioPriMicDataCharacteristic: CBCharacteristic!
@@ -99,8 +99,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    @objc func pdmStartTimerCallback() {
-        print("PDM start callback")
+    private func pdmStart()
+    {
+        print("PDM start")
         let value: UInt8 = audioStreamStartValue
         let data = Data(_:[value])
         
@@ -116,7 +117,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("ERROR shioSec not connected")
         }
         
-        
+        recordButton.backgroundColor = (UIColor(red: 247.0/255.0, green: 86.0/255.0, blue: 0x63/255.0, alpha: 1.0))
+        recordButton.setTitleColor(UIColor.white, for: .normal)
         recordingState = RecordingState.ready
         recordButton.setTitle("START STREAM", for: .normal)
     }
@@ -141,7 +143,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 
                 if (peripherals.count == 1) {
                     print("Discovered first shio")
-                    self.shioPri = Array(peripherals)[0].value
+                    self.shioPri = peripheral
                     self.shioPri.delegate = self
                     self.centralManager.connect(self.shioPri, options: nil)
                 }
@@ -151,7 +153,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     print("Discovered second shio")
                     self.centralManager.stopScan()
                     
-                    self.shioSec = Array(peripherals)[1].value
+                    self.shioSec = peripheral
                     self.shioSec.delegate = self
                     self.centralManager.connect(self.shioSec, options: nil)
                 }
@@ -171,7 +173,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         updateViewDeviceBackground(peripheral: peripheral, connected: false)
-        characteristicsDiscovered = (characteristicsDiscovered > 0) ? (characteristicsDiscovered - 1) : 0
+        connectionIntervalUpdated = (connectionIntervalUpdated > 0) ? (connectionIntervalUpdated - 1) : 0
         if (peripheral.identifier == self.shioPri.identifier) {
             print("Disconnected shioPri \(peripheral.identifier)")
         } else if (peripheral.identifier == self.shioSec.identifier) {
@@ -203,23 +205,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         let data = Data(_:[value])
                         peripheral.writeValue(data, for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
                     }
+                    
+                    shioPri.setNotifyValue(true, for: shioPriControlCharacteristic)
                 } else if (characteristic.uuid == micDataCharUUID) {
-                    characteristicsDiscovered += 1
                     shioPriMicDataCharacteristic = characteristic
                 }
             } else if (thisShio == "shioSec") {
                 if (characteristic.uuid == controlCharUUID) {
                     shioSecControlCharacteristic = characteristic
+                    shioSec.setNotifyValue(true, for: shioSecControlCharacteristic)
                 } else if (characteristic.uuid == micDataCharUUID) {
-                    characteristicsDiscovered += 1
                     shioSecMicDataCharacteristic = characteristic
                 }
             }
-        }
-        
-        // Once we've discovered characteristics for both shios, set a 1s callback to start the PDM stream
-        if (characteristicsDiscovered == 2) {
-            _ = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(pdmStartTimerCallback), userInfo: nil, repeats: false)
         }
     }
     
@@ -233,10 +231,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let value = characteristic.value else { return }
+        let packetLength = Int(value.count)     // Get the length of the packet
         
         if (characteristic.uuid == micDataCharUUID) {
-            // Get the length of the packet
-            let packetLength = Int(value.count)
             assert(packetLength % 2 == 0) // We assume 16 bit integer, can't have half a data packet
             let newPacketLength = Int(packetLength / 2)
 
@@ -257,9 +254,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             }
         } else if (characteristic.uuid == controlCharUUID) {
-            print("Control interval updated")
+            let dataPointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
+            value.copyBytes(to: dataPointer, count: 1)
+            
+            if (dataPointer[0] == 0xFF) {
+                connectionIntervalUpdated += 1
+                print("Control interval updated")
+                
+                if (connectionIntervalUpdated == 2) {
+                    pdmStart()
+                }
+            }
         }
-        
     }
     
     // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
@@ -365,11 +371,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }) { [weak self] (uploadedFileUrl, error) in
             guard let strongSelf = self else { return }
             if let finalPath = uploadedFileUrl as? String {
-                strongSelf.recordingState = RecordingState.ready
-                strongSelf.recordButton.setTitle("START STREAM", for: .normal)
+                strongSelf.recordingState = RecordingState.waiting
+                strongSelf.recordButton.setTitle("INITIALIZING", for: .normal)
+                strongSelf.recordButton.backgroundColor = UIColor(red: 242.0/255.0, green: 242.0/255.0, blue: 247/255.0, alpha: 1.0)
                 
                 let alert = UIAlertController(title: "Upload Successful", message: "Thank you for taking the time to submit a voice recording for our project. Feel free to reach out to us if you have any questions!", preferredStyle: .alert)
-
                 alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
                 strongSelf.present(alert, animated: true)
                 
