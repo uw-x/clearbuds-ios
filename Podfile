@@ -9,6 +9,7 @@ target 'shio-dc' do
   pod 'AWSS3'
   pod 'AWSCognito'
   pod 'AWSCore'  
+  pod 'Charts'
 
   target 'shio-dcTests' do
     inherit! :search_paths

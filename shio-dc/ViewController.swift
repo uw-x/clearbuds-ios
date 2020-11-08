@@ -10,6 +10,7 @@ import UIKit
 import CoreBluetooth
 import AVFoundation
 import AVKit
+import Charts
 
 // MARK: Definitions
 let shioServiceUUID = CBUUID(string: "47ea1400-a0e4-554e-5282-0afcd3246970")
@@ -33,6 +34,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var shioLButton: UIButton!
     @IBOutlet weak var shioRButton: UIButton!
     
+    @IBOutlet weak var shioPriGraph: LineChartView!
+    @IBOutlet weak var shioSecGraph: LineChartView!
     
     let testFilePath = Bundle.main.path(forResource: "Two Dumbs Up - uncoolclub", ofType: "mp3")
     var connectionIntervalUpdated = 0
@@ -44,7 +47,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var shioSecMicDataCharacteristic: CBCharacteristic!
     var shioSecControlCharacteristic: CBCharacteristic!
     var peripherals: [UUID: CBPeripheral] = [:]
-    
+
     // Actual audio buffers
     var shioPriAudioBuffer : [Int16] = []
     var shioSecAudioBuffer : [Int16] = []
@@ -252,7 +255,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         shioSecAudioBuffer.append(bufferPointerInt16[i])
                     }
                 }
-            }
+            }            
+            updateCharts()
+
         } else if (characteristic.uuid == controlCharUUID) {
             let dataPointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
             value.copyBytes(to: dataPointer, count: 1)
@@ -268,6 +273,64 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func updateCharts() {
+        // Should probably check for a memory error here
+        var valuesPri: [ChartDataEntry] = []
+        var valuesSec: [ChartDataEntry] = []
+        
+        if (shioPriAudioBuffer.count > 100) {
+            for i in (shioPriAudioBuffer.count - 100 ..< shioPriAudioBuffer.count) {
+                valuesPri.append(ChartDataEntry(x: Double(i - shioPriAudioBuffer.count + 100), y: Double(shioPriAudioBuffer[i])))
+            }
+        }
+
+        if (shioSecAudioBuffer.count > 100) {
+            for i in (shioSecAudioBuffer.count - 100 ..< shioSecAudioBuffer.count) {
+                valuesSec.append(ChartDataEntry(x: Double(i - shioSecAudioBuffer.count + 100), y: Double(shioSecAudioBuffer[i])))
+            }
+        }
+        
+        let setPri = LineChartDataSet(entries: valuesPri, label: "Mic 1 Waveform")
+        setPri.drawCirclesEnabled = false
+        let dataPri = LineChartData(dataSet: setPri)
+        shioPriGraph.data = dataPri
+        shioPriGraph.leftAxis.axisMinimum = -32768
+        shioPriGraph.leftAxis.axisMaximum = 32768
+        shioPriGraph.rightAxis.axisMinimum = -32768
+        shioPriGraph.rightAxis.axisMaximum = 32768
+        
+        shioPriGraph.rightAxis.enabled = false
+        shioPriGraph.leftAxis.enabled = false
+        shioPriGraph.xAxis.enabled = false
+        shioPriGraph.leftAxis.drawLabelsEnabled = false
+        shioPriGraph.rightAxis.drawLabelsEnabled = false
+        shioPriGraph.xAxis.drawGridLinesEnabled = false
+        shioPriGraph.xAxis.drawAxisLineEnabled = false
+        shioPriGraph.leftAxis.drawAxisLineEnabled = false
+        shioPriGraph.rightAxis.drawAxisLineEnabled = false
+        shioPriGraph.drawBordersEnabled = false
+            
+        let setSec = LineChartDataSet(entries: valuesSec, label: "Mic 2 Waveform")
+        setSec.drawCirclesEnabled = false
+        let dataSec = LineChartData(dataSet: setSec)
+        shioSecGraph.data = dataSec
+        shioSecGraph.leftAxis.axisMinimum = -32768
+        shioSecGraph.leftAxis.axisMaximum = 32768
+        shioSecGraph.rightAxis.axisMinimum = -32768
+        shioSecGraph.rightAxis.axisMaximum = 32768
+        
+        shioSecGraph.rightAxis.enabled = false
+        shioSecGraph.leftAxis.enabled = false
+        shioSecGraph.xAxis.enabled = false
+        shioSecGraph.leftAxis.drawLabelsEnabled = false
+        shioSecGraph.rightAxis.drawLabelsEnabled = false
+        shioSecGraph.xAxis.drawGridLinesEnabled = false
+        shioSecGraph.xAxis.drawAxisLineEnabled = false
+        shioSecGraph.leftAxis.drawAxisLineEnabled = false
+        shioSecGraph.rightAxis.drawAxisLineEnabled = false
+        shioSecGraph.drawBordersEnabled = false
+    }
+
     // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
     func createWavFile(audioBufferPri: [Int16], audioBufferSec: [Int16]) -> (String, String) {
         // Hard coded params for now

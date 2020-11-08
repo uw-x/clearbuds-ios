@@ -2,8 +2,10 @@
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17156" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17126"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17125"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -148,6 +150,16 @@
                                 <rect key="frame" x="30" y="768" width="354" height="4"/>
                                 <color key="tintColor" red="0.96987646819999995" green="0.33592953990000002" blue="0.38741642040000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             </progressView>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0HD-Bj-yvY" customClass="LineChartView" customModule="Charts">
+                                <rect key="frame" x="20" y="304" width="240" height="200"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KtH-Db-5Bh" customClass="LineChartView" customModule="Charts">
+                                <rect key="frame" x="20" y="522" width="240" height="200"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -192,9 +204,11 @@
                         <outlet property="shioLButton" destination="MTX-BQ-AIa" id="Uxc-Bm-xM5"/>
                         <outlet property="shioLImageView" destination="6BR-t7-t82" id="M7g-qM-k2H"/>
                         <outlet property="shioLSearchingIndicatorView" destination="3IK-vy-ymj" id="Lo6-dw-iOQ"/>
+                        <outlet property="shioPriGraph" destination="0HD-Bj-yvY" id="JWN-hP-2Lm"/>
                         <outlet property="shioRButton" destination="CKS-jD-XuD" id="8Uv-Yp-tGl"/>
                         <outlet property="shioRImageView" destination="r9r-3o-4Cm" id="Vj3-1n-Pp0"/>
                         <outlet property="shioRSearchingIndicatorView" destination="nKN-cY-16i" id="wqG-zH-v0u"/>
+                        <outlet property="shioSecGraph" destination="KtH-Db-5Bh" id="sZZ-0J-mxk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -204,5 +218,8 @@
     </scenes>
     <resources>
         <image name="bud-icon" width="128" height="128"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
     </resources>
 </document>
