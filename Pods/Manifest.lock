@@ -1,26 +1,32 @@
 PODS:
-  - AWSCognito (2.18.0):
-    - AWSCore (= 2.18.0)
-  - AWSCore (2.18.0)
-  - AWSS3 (2.18.0):
-    - AWSCore (= 2.18.0)
+  - AWSCognito (2.19.1):
+    - AWSCore (= 2.19.1)
+  - AWSCore (2.19.1)
+  - AWSS3 (2.19.1):
+    - AWSCore (= 2.19.1)
+  - Charts (3.6.0):
+    - Charts/Core (= 3.6.0)
+  - Charts/Core (3.6.0)
 
 DEPENDENCIES:
   - AWSCognito
   - AWSCore
   - AWSS3
+  - Charts
 
 SPEC REPOS:
   trunk:
     - AWSCognito
     - AWSCore
     - AWSS3
+    - Charts
 
 SPEC CHECKSUMS:
-  AWSCognito: fac11e043edcd9291099a491d4c3ad4e9a47bc8d
-  AWSCore: e8cc7fd06efa211328942cc7c9f6dddbe889a115
-  AWSS3: 31b24341477f8eaae01542900e2253e908eed1ee
+  AWSCognito: f50de600804941d083af37a7568905f31a774727
+  AWSCore: 55c154ae27efc5c98bdc30a0eeea5a35d10a2ab5
+  AWSS3: 2272253b098d07803af8dd20ce6ce7302bcffb47
+  Charts: b1e3a1f5a1c9ba5394438ca3b91bd8c9076310af
 
-PODFILE CHECKSUM: 332140f56440f8fb867be516119ab9e78cf646b6
+PODFILE CHECKSUM: 791a6c00acf116742b9971012346d05e272bce12
 
 COCOAPODS: 1.9.1

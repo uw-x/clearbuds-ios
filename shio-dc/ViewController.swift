@@ -34,10 +34,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var shioLButton: UIButton!
     @IBOutlet weak var shioRButton: UIButton!
     
-    @IBOutlet weak var shioPriGraph: LineChartView!
-    @IBOutlet weak var shioSecGraph: LineChartView!
+    @IBOutlet weak var liveView: LineChartView!
     
-    let testFilePath = Bundle.main.path(forResource: "Two Dumbs Up - uncoolclub", ofType: "mp3")
     var connectionIntervalUpdated = 0
     var centralManager: CBCentralManager!
     var shioPri: CBPeripheral!
@@ -69,6 +67,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         shioLSearchingIndicatorView.startAnimating()
         shioRSearchingIndicatorView.startAnimating()
         progressView.isHidden = true
+        initLiveView()
+    }
+    
+    private func initLiveView() {
+        liveView.leftAxis.axisMinimum = -35000
+        liveView.leftAxis.axisMaximum = 35000
+        liveView.rightAxis.axisMinimum = -35000
+        liveView.rightAxis.axisMaximum = 35000
+        
+        liveView.rightAxis.enabled = false
+        liveView.leftAxis.enabled = false
+        liveView.xAxis.enabled = false
+        liveView.leftAxis.drawLabelsEnabled = false
+        liveView.rightAxis.drawLabelsEnabled = false
+        liveView.xAxis.drawGridLinesEnabled = false
+        liveView.xAxis.drawAxisLineEnabled = false
+        liveView.leftAxis.drawAxisLineEnabled = false
+        liveView.rightAxis.drawAxisLineEnabled = false
+        liveView.drawBordersEnabled = false
     }
     
     private func updateView() {
@@ -255,7 +272,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         shioSecAudioBuffer.append(bufferPointerInt16[i])
                     }
                 }
-            }            
+            }
+            
             updateCharts()
 
         } else if (characteristic.uuid == controlCharUUID) {
@@ -274,61 +292,32 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func updateCharts() {
-        // Should probably check for a memory error here
-        var valuesPri: [ChartDataEntry] = []
-        var valuesSec: [ChartDataEntry] = []
-        
+        var lineChartEntry1 = [ChartDataEntry]()
+        var lineChartEntry2 = [ChartDataEntry]()
+        let data = LineChartData()
+        let offset = 1000
+
         if (shioPriAudioBuffer.count > 100) {
             for i in (shioPriAudioBuffer.count - 100 ..< shioPriAudioBuffer.count) {
-                valuesPri.append(ChartDataEntry(x: Double(i - shioPriAudioBuffer.count + 100), y: Double(shioPriAudioBuffer[i])))
+                lineChartEntry1.append(ChartDataEntry(x: Double(i - shioPriAudioBuffer.count + 100), y: Double(shioPriAudioBuffer[i]) - Double(offset)))
             }
+            let line1 = LineChartDataSet(entries: lineChartEntry1, label: "Mic 1")
+            line1.drawCirclesEnabled = false
+            line1.setColor(UIColor(red: 247.0/255.0, green: 86.0/255.0, blue: 0x63/255.0, alpha: 1.0))
+            data.addDataSet(line1)
         }
-
+        
         if (shioSecAudioBuffer.count > 100) {
             for i in (shioSecAudioBuffer.count - 100 ..< shioSecAudioBuffer.count) {
-                valuesSec.append(ChartDataEntry(x: Double(i - shioSecAudioBuffer.count + 100), y: Double(shioSecAudioBuffer[i])))
+                lineChartEntry2.append(ChartDataEntry(x: Double(i - shioSecAudioBuffer.count + 100), y: Double(shioSecAudioBuffer[i]) + Double(offset)))
             }
+            let line2 = LineChartDataSet(entries: lineChartEntry2, label: "Mic 2")
+            line2.drawCirclesEnabled = false
+            line2.setColor(UIColor(red: 0x63/255.0, green: 86.0/255.0, blue: 247.0/255.0, alpha: 1.0))
+            data.addDataSet(line2)
         }
         
-        let setPri = LineChartDataSet(entries: valuesPri, label: "Mic 1 Waveform")
-        setPri.drawCirclesEnabled = false
-        let dataPri = LineChartData(dataSet: setPri)
-        shioPriGraph.data = dataPri
-        shioPriGraph.leftAxis.axisMinimum = -32768
-        shioPriGraph.leftAxis.axisMaximum = 32768
-        shioPriGraph.rightAxis.axisMinimum = -32768
-        shioPriGraph.rightAxis.axisMaximum = 32768
-        
-        shioPriGraph.rightAxis.enabled = false
-        shioPriGraph.leftAxis.enabled = false
-        shioPriGraph.xAxis.enabled = false
-        shioPriGraph.leftAxis.drawLabelsEnabled = false
-        shioPriGraph.rightAxis.drawLabelsEnabled = false
-        shioPriGraph.xAxis.drawGridLinesEnabled = false
-        shioPriGraph.xAxis.drawAxisLineEnabled = false
-        shioPriGraph.leftAxis.drawAxisLineEnabled = false
-        shioPriGraph.rightAxis.drawAxisLineEnabled = false
-        shioPriGraph.drawBordersEnabled = false
-            
-        let setSec = LineChartDataSet(entries: valuesSec, label: "Mic 2 Waveform")
-        setSec.drawCirclesEnabled = false
-        let dataSec = LineChartData(dataSet: setSec)
-        shioSecGraph.data = dataSec
-        shioSecGraph.leftAxis.axisMinimum = -32768
-        shioSecGraph.leftAxis.axisMaximum = 32768
-        shioSecGraph.rightAxis.axisMinimum = -32768
-        shioSecGraph.rightAxis.axisMaximum = 32768
-        
-        shioSecGraph.rightAxis.enabled = false
-        shioSecGraph.leftAxis.enabled = false
-        shioSecGraph.xAxis.enabled = false
-        shioSecGraph.leftAxis.drawLabelsEnabled = false
-        shioSecGraph.rightAxis.drawLabelsEnabled = false
-        shioSecGraph.xAxis.drawGridLinesEnabled = false
-        shioSecGraph.xAxis.drawAxisLineEnabled = false
-        shioSecGraph.leftAxis.drawAxisLineEnabled = false
-        shioSecGraph.rightAxis.drawAxisLineEnabled = false
-        shioSecGraph.drawBordersEnabled = false
+        liveView.data = data
     }
 
     // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
