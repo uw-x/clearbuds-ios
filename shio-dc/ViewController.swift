@@ -297,9 +297,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = LineChartData()
         let offset = 1000
 
-        if (shioPriAudioBuffer.count > 100) {
-            for i in (shioPriAudioBuffer.count - 100 ..< shioPriAudioBuffer.count) {
-                lineChartEntry1.append(ChartDataEntry(x: Double(i - shioPriAudioBuffer.count + 100), y: Double(shioPriAudioBuffer[i]) - Double(offset)))
+        let numSamples = 37500  // 3 Seconds
+        let currStride = 100  // Don't show every single sample, it's too slow and you can't see that resolution anyway
+
+        if (shioPriAudioBuffer.count > currStride) {
+            var x_idx = 0
+            for i in stride(from: max(0, ((shioPriAudioBuffer.count - numSamples) / currStride) * currStride), to: shioPriAudioBuffer.count, by: currStride) {
+                lineChartEntry1.append(ChartDataEntry(x: Double(x_idx), y: Double(shioPriAudioBuffer[i]) - Double(offset)))
+                x_idx += 1
             }
             let line1 = LineChartDataSet(entries: lineChartEntry1, label: "Mic 1")
             line1.drawCirclesEnabled = false
@@ -308,8 +313,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         
         if (shioSecAudioBuffer.count > 100) {
-            for i in (shioSecAudioBuffer.count - 100 ..< shioSecAudioBuffer.count) {
-                lineChartEntry2.append(ChartDataEntry(x: Double(i - shioSecAudioBuffer.count + 100), y: Double(shioSecAudioBuffer[i]) + Double(offset)))
+            var x_idx = 0
+            for i in stride(from: max(0, ((shioSecAudioBuffer.count - numSamples) / currStride) * currStride), to: shioSecAudioBuffer.count, by: currStride) {
+                lineChartEntry2.append(ChartDataEntry(x: Double(x_idx), y: Double(shioSecAudioBuffer[i]) + Double(offset)))
+                x_idx += 1
             }
             let line2 = LineChartDataSet(entries: lineChartEntry2, label: "Mic 2")
             line2.drawCirclesEnabled = false
