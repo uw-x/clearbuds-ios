@@ -50,6 +50,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var shioPriAudioBuffer : [Int16] = []
     var shioSecAudioBuffer : [Int16] = []
     
+    // Sequence numbers
+    var expectedSequenceNumberPri = UInt16(0)
+    var expectedSequenceNumberSec = UInt16(0)
+    
     enum RecordingState: Int {
         case waiting = 0
         case ready = 1
@@ -257,19 +261,63 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             assert(packetLength % 2 == 0) // We assume 16 bit integer, can't have half a data packet
             let newPacketLength = Int(packetLength / 2)
 
-            // Convert the Byte Buffer to an Int 16 Buffer
+            // Convert the Byte Buffer to an Int16 Buffer
             value.withUnsafeBytes{ (bufferRawBufferPointer) -> Void in
                 let bufferPointerInt16 = UnsafeBufferPointer<Int16>.init(start: bufferRawBufferPointer.baseAddress!.bindMemory(to: Int16.self, capacity: 1), count: newPacketLength)
-
+                let sequenceNumberBytes : [UInt8] = [bufferRawBufferPointer[1], bufferRawBufferPointer[0]]
+                let actualSequenceNumber = sequenceNumberBytes.withUnsafeBytes{$0.load(as: UInt16.self)}
+                
                 // Do something with data
                 if (peripheral.identifier == self.shioPri.identifier) {
-                    for i in 0...newPacketLength - 1 {
-                        shioPriAudioBuffer.append(bufferPointerInt16[i])
+                    if (expectedSequenceNumberPri == actualSequenceNumber) {
+                        // Nominal behavior
+                        for i in 1...newPacketLength - 1 {
+                            shioPriAudioBuffer.append(bufferPointerInt16[i])
+                        }
+                        
+                        expectedSequenceNumberPri += 1
+                    } else if (actualSequenceNumber > expectedSequenceNumberPri) {
+                        print("PRI actual", actualSequenceNumber, "expected", expectedSequenceNumberPri)
+                        // A packet was dropped, fill (actual-expected) worth of packets with zeros
+                        for _ in 0...(actualSequenceNumber - expectedSequenceNumberPri - 1) {
+                            for _ in 1...newPacketLength - 1 {
+                                shioPriAudioBuffer.append(0)
+                            }
+                        }
+                        
+                        for i in 1...newPacketLength - 1 {
+                            shioPriAudioBuffer.append(bufferPointerInt16[i])
+                        }
+                        
+                        expectedSequenceNumberPri = actualSequenceNumber + 1
+                    } else {
+                        assert(true) // the expected should never be ahead of the actual
                     }
 
                 } else if (peripheral.identifier == self.shioSec.identifier) {
-                    for i in 0...newPacketLength - 1 {
-                        shioSecAudioBuffer.append(bufferPointerInt16[i])
+                    if (expectedSequenceNumberSec == actualSequenceNumber) {
+                        // Nominal behavior
+                        for i in 1...newPacketLength - 1 {
+                            shioSecAudioBuffer.append(bufferPointerInt16[i])
+                        }
+                        
+                        expectedSequenceNumberSec += 1
+                    } else if (actualSequenceNumber > expectedSequenceNumberSec) {
+                        print("SEC actual", actualSequenceNumber, "expected", expectedSequenceNumberSec)
+                        // A packet was dropped, fill (actual-expected) worth of packets with zeros
+                        for _ in 0...(actualSequenceNumber - expectedSequenceNumberSec - 1) {
+                            for _ in 1...newPacketLength - 1 {
+                                shioSecAudioBuffer.append(0)
+                            }
+                        }
+                        
+                        for i in 1...newPacketLength - 1 {
+                            shioSecAudioBuffer.append(bufferPointerInt16[i])
+                        }
+                        
+                        expectedSequenceNumberSec = actualSequenceNumber + 1
+                    } else {
+                        assert(true) // the expected should never be ahead of the actual
                     }
                 }
             }
@@ -327,7 +375,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         liveView.data = data
     }
 
-    // Function to create and write the wave files locally from Raw PCM. Returns filename of left and right
+    // Function to create and write the wav files locally from Raw PCM. Returns filename of left and right
     func createWavFile(audioBufferPri: [Int16], audioBufferSec: [Int16]) -> (String, String) {
         // Hard coded params for now
         let sample_rate =  Float64(12500.0)
@@ -416,6 +464,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             let (baseStringPri, baseStringSec) = createWavFile(audioBufferPri: shioPriAudioBuffer, audioBufferSec: shioSecAudioBuffer)
             uploadAudio(baseString: baseStringPri)
             uploadAudio(baseString: baseStringSec)
+            
+            // Reset audio buffers
+            shioPriAudioBuffer = []
+            shioSecAudioBuffer = []
         }
     }
     
@@ -429,7 +481,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             strongSelf.recordButton.setTitle(String(Int(100*progress)) + "%", for:.normal)
         }) { [weak self] (uploadedFileUrl, error) in
             guard let strongSelf = self else { return }
-            if let finalPath = uploadedFileUrl as? String {
+            if (uploadedFileUrl as? String) != nil {
                 strongSelf.recordingState = RecordingState.waiting
                 strongSelf.recordButton.setTitle("INITIALIZING", for: .normal)
                 strongSelf.recordButton.backgroundColor = UIColor(red: 242.0/255.0, green: 242.0/255.0, blue: 247/255.0, alpha: 1.0)
