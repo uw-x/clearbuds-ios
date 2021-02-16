@@ -35,6 +35,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var shioRButton: UIButton!
     
     @IBOutlet weak var liveView: LineChartView!
+    @IBOutlet weak var voiseNoiseControlPicker: UISegmentedControl!
     
     var connectionIntervalUpdated = 0
     var centralManager: CBCentralManager!
@@ -72,6 +73,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         shioRSearchingIndicatorView.startAnimating()
         progressView.isHidden = true
         initLiveView()
+        print("View Loaded")
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0])
     }
     
     private func initLiveView() {
@@ -474,7 +477,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func uploadAudio(baseString: String) {
         let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let audioURL = URL(fileURLWithPath: baseString, relativeTo: directoryURL).appendingPathExtension("wav")
-        AWSS3Manager.shared.uploadAudio(audioUrl: audioURL, uploadName: baseString + ".wav", progress: { [weak self] (progress) in
+        var folderName = ""
+        if (voiseNoiseControlPicker.selectedSegmentIndex == 0) {
+            folderName = "Voice/"
+        } else {
+            folderName = "Noise/"
+        }
+        
+        let uploadNameWithPath = folderName + baseString + ".wav"
+        
+        AWSS3Manager.shared.uploadAudio(audioUrl: audioURL, uploadName: uploadNameWithPath, progress: { [weak self] (progress) in
             guard let strongSelf = self else { return }
             strongSelf.progressView.progress = Float(progress)
             

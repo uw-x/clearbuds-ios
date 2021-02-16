@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -56,7 +56,18 @@
                                 </userDefinedRuntimeAttributes>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Live View" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iT7-nX-8Ko">
-                                <rect key="frame" x="20" y="305.5" width="60" height="15"/>
+                                <rect key="frame" x="20" y="401.5" width="60" height="15"/>
+                                <fontDescription key="fontDescription" name="Helvetica-Bold" family="Helvetica" pointSize="13"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="kerning">
+                                        <real key="value" value="0.0"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Recording" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vl8-wV-2ta">
+                                <rect key="frame" x="20" y="305.5" width="65" height="15"/>
                                 <fontDescription key="fontDescription" name="Helvetica-Bold" family="Helvetica" pointSize="13"/>
                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -160,16 +171,21 @@
                                 <color key="tintColor" red="0.96987646819999995" green="0.33592953990000002" blue="0.38741642040000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             </progressView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0HD-Bj-yvY" customClass="LineChartView" customModule="Charts">
-                                <rect key="frame" x="30" y="330.5" width="354" height="300"/>
+                                <rect key="frame" x="30" y="456.5" width="354" height="270"/>
                                 <color key="backgroundColor" red="0.94886761900000005" green="0.94878417250000002" blue="0.96522957089999994" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="300" id="U2V-2r-iug"/>
-                                </constraints>
                             </view>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="N9M-Ma-ej4">
+                                <rect key="frame" x="30" y="330.5" width="354" height="32"/>
+                                <segments>
+                                    <segment title="Voice"/>
+                                    <segment title="Noise"/>
+                                </segments>
+                            </segmentedControl>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="vl8-wV-2ta" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="1Ik-uU-4se"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="0HD-Bj-yvY" secondAttribute="trailing" constant="30" id="1bL-f3-qSn"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="OVn-Ez-Nsv" secondAttribute="trailing" constant="30" id="1bh-f0-ohR"/>
                             <constraint firstItem="peJ-1J-BzC" firstAttribute="centerX" secondItem="CKS-jD-XuD" secondAttribute="centerX" id="211-Zp-6eZ"/>
@@ -177,14 +193,16 @@
                             <constraint firstItem="haa-VN-2IY" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="30" id="3ez-Q5-czK"/>
                             <constraint firstItem="Sdl-pr-hWz" firstAttribute="bottom" secondItem="MTX-BQ-AIa" secondAttribute="bottom" constant="-5" id="5y2-l8-PNR"/>
                             <constraint firstItem="Sdl-pr-hWz" firstAttribute="centerX" secondItem="MTX-BQ-AIa" secondAttribute="centerX" id="B2e-l7-BHJ"/>
+                            <constraint firstItem="vl8-wV-2ta" firstAttribute="top" secondItem="MTX-BQ-AIa" secondAttribute="bottom" constant="40" id="BDz-LR-POZ"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="JlX-Fp-eaP" secondAttribute="trailing" constant="20" id="CTO-C2-fo7"/>
                             <constraint firstItem="nKN-cY-16i" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="148.5" id="IwP-8h-xI9"/>
                             <constraint firstItem="nKN-cY-16i" firstAttribute="centerX" secondItem="peJ-1J-BzC" secondAttribute="centerX" id="J05-5v-k3n"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="N9M-Ma-ej4" secondAttribute="trailing" constant="30" id="LuL-en-7VJ"/>
                             <constraint firstItem="CKS-jD-XuD" firstAttribute="baseline" secondItem="MTX-BQ-AIa" secondAttribute="baseline" id="MRS-HD-gps"/>
                             <constraint firstItem="MTX-BQ-AIa" firstAttribute="top" secondItem="haa-VN-2IY" secondAttribute="bottom" constant="40" id="NLw-i5-g4F"/>
                             <constraint firstItem="iT7-nX-8Ko" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="Nvx-vO-YO5"/>
                             <constraint firstItem="3IK-vy-ymj" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="69.5" id="Q5z-vQ-DaT"/>
-                            <constraint firstItem="iT7-nX-8Ko" firstAttribute="top" secondItem="MTX-BQ-AIa" secondAttribute="bottom" constant="40" id="T4F-Ky-qu9"/>
+                            <constraint firstItem="zCv-Yr-0h8" firstAttribute="top" secondItem="0HD-Bj-yvY" secondAttribute="bottom" constant="45.5" id="Uxu-tY-YoE"/>
                             <constraint firstItem="CKS-jD-XuD" firstAttribute="top" secondItem="haa-VN-2IY" secondAttribute="bottom" constant="40" id="VWh-pa-Mmr"/>
                             <constraint firstItem="CKS-jD-XuD" firstAttribute="leading" secondItem="MTX-BQ-AIa" secondAttribute="trailing" constant="9" id="Wy2-Vi-4pd"/>
                             <constraint firstItem="JlX-Fp-eaP" firstAttribute="width" secondItem="CKS-jD-XuD" secondAttribute="width" id="XTB-GS-GNr"/>
@@ -197,10 +215,12 @@
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="zCv-Yr-0h8" secondAttribute="trailing" constant="30" id="cD9-tt-D5J"/>
                             <constraint firstItem="Sdl-pr-hWz" firstAttribute="top" secondItem="6BR-t7-t82" secondAttribute="bottom" constant="12" id="gWs-KL-LZp"/>
                             <constraint firstItem="JlX-Fp-eaP" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="93" id="hxx-bw-6b9"/>
-                            <constraint firstItem="0HD-Bj-yvY" firstAttribute="top" secondItem="iT7-nX-8Ko" secondAttribute="bottom" constant="10" id="il4-0d-9dy"/>
+                            <constraint firstItem="0HD-Bj-yvY" firstAttribute="top" secondItem="iT7-nX-8Ko" secondAttribute="bottom" constant="40" id="il4-0d-9dy"/>
                             <constraint firstItem="3IK-vy-ymj" firstAttribute="centerY" secondItem="6BR-t7-t82" secondAttribute="centerY" id="k9m-zw-1gN"/>
+                            <constraint firstItem="N9M-Ma-ej4" firstAttribute="top" secondItem="vl8-wV-2ta" secondAttribute="bottom" constant="10" id="kTq-Vz-o7i"/>
                             <constraint firstItem="0HD-Bj-yvY" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="lZM-ir-9K9"/>
                             <constraint firstItem="3IK-vy-ymj" firstAttribute="centerX" secondItem="Sdl-pr-hWz" secondAttribute="centerX" id="lmf-dj-WC6"/>
+                            <constraint firstItem="iT7-nX-8Ko" firstAttribute="top" secondItem="N9M-Ma-ej4" secondAttribute="bottom" constant="40" id="mcj-aW-A3E"/>
                             <constraint firstItem="CKS-jD-XuD" firstAttribute="firstBaseline" secondItem="MTX-BQ-AIa" secondAttribute="firstBaseline" id="n6i-e7-s4k"/>
                             <constraint firstItem="r9r-3o-4Cm" firstAttribute="centerX" secondItem="peJ-1J-BzC" secondAttribute="centerX" constant="2" id="neP-4J-ZUC"/>
                             <constraint firstItem="zCv-Yr-0h8" firstAttribute="top" secondItem="OVn-Ez-Nsv" secondAttribute="bottom" id="oRL-Cs-cb6"/>
@@ -209,6 +229,7 @@
                             <constraint firstItem="Sdl-pr-hWz" firstAttribute="baseline" secondItem="peJ-1J-BzC" secondAttribute="firstBaseline" id="pzu-uZ-C3S"/>
                             <constraint firstItem="MTX-BQ-AIa" firstAttribute="top" secondItem="k0S-MP-vFq" secondAttribute="bottom" constant="6" id="r4e-Gr-HaG"/>
                             <constraint firstItem="nKN-cY-16i" firstAttribute="centerY" secondItem="r9r-3o-4Cm" secondAttribute="centerY" id="sHM-Yk-DOL"/>
+                            <constraint firstItem="N9M-Ma-ej4" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="syf-Vn-U5M"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="zCv-Yr-0h8" secondAttribute="bottom" constant="30" id="t9w-ZJ-gmU"/>
                             <constraint firstItem="JlX-Fp-eaP" firstAttribute="leading" secondItem="CKS-jD-XuD" secondAttribute="trailing" constant="9" id="tPY-RO-ZGE"/>
                             <constraint firstItem="peJ-1J-BzC" firstAttribute="bottom" secondItem="CKS-jD-XuD" secondAttribute="bottom" constant="-5" id="u4l-oX-be3"/>
@@ -228,6 +249,7 @@
                         <outlet property="shioRButton" destination="CKS-jD-XuD" id="8Uv-Yp-tGl"/>
                         <outlet property="shioRImageView" destination="r9r-3o-4Cm" id="Vj3-1n-Pp0"/>
                         <outlet property="shioRSearchingIndicatorView" destination="nKN-cY-16i" id="wqG-zH-v0u"/>
+                        <outlet property="voiseNoiseControlPicker" destination="N9M-Ma-ej4" id="EZY-1O-Nzk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
