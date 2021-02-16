@@ -468,9 +468,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             uploadAudio(baseString: baseStringPri)
             uploadAudio(baseString: baseStringSec)
             
-            // Reset audio buffers
+            // Reset audio buffers and expected sequence numbers
             shioPriAudioBuffer = []
             shioSecAudioBuffer = []
+            expectedSequenceNumberPri = 0
+            expectedSequenceNumberSec = 0
         }
     }
     
