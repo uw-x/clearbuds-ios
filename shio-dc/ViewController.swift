@@ -26,6 +26,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBOutlet weak var appNameLabel: UILabel!
     @IBOutlet weak var progressView: UIProgressView!
+    @IBOutlet weak var playButtonLeft: UIButton!
+    @IBOutlet weak var playButtonRight: UIButton!
+    
     @IBOutlet weak var recordButton: UIButton!
     @IBOutlet weak var shioLImageView: UIImageView!
     @IBOutlet weak var shioRImageView: UIImageView!
@@ -37,6 +40,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var liveView: LineChartView!
     @IBOutlet weak var voiseNoiseControlPicker: UISegmentedControl!
     
+    var baseStringPri: String!
+    var baseStringSec: String!
     var connectionIntervalUpdated = 0
     var centralManager: CBCentralManager!
     var shioPri: CBPeripheral!
@@ -46,6 +51,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var shioSecMicDataCharacteristic: CBCharacteristic!
     var shioSecControlCharacteristic: CBCharacteristic!
     var peripherals: [UUID: CBPeripheral] = [:]
+    var player: AVPlayer!
 
     // Actual audio buffers
     var shioPriAudioBuffer : [Int16] = []
@@ -72,6 +78,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         shioLSearchingIndicatorView.startAnimating()
         shioRSearchingIndicatorView.startAnimating()
         progressView.isHidden = true
+        playButtonLeft.isHidden = true
+        playButtonRight.isHidden = true
         initLiveView()
         print("View Loaded")
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0])
@@ -463,10 +471,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             shioPri.setNotifyValue(false, for: shioPriMicDataCharacteristic)
             shioSec.setNotifyValue(false, for: shioSecMicDataCharacteristic)
             recordButton.setTitle("UPLOAD", for: .normal)
+            let (stringPri, stringSec) = createWavFile(audioBufferPri: shioPriAudioBuffer, audioBufferSec: shioSecAudioBuffer)
+            self.baseStringPri = stringPri
+            self.baseStringSec = stringSec
+            playButtonLeft.isHidden = false
+            playButtonLeft.setTitle("Play Left Audio", for: .normal)
+            playButtonRight.isHidden = false
+            playButtonRight.setTitle("Play Right Audio", for: .normal)
         } else if (recordingState == RecordingState.done) {
-            let (baseStringPri, baseStringSec) = createWavFile(audioBufferPri: shioPriAudioBuffer, audioBufferSec: shioSecAudioBuffer)
-            uploadAudio(baseString: baseStringPri)
-            uploadAudio(baseString: baseStringSec)
+            uploadAudio(baseString: self.baseStringPri)
+            uploadAudio(baseString: self.baseStringSec)
             
             // Reset audio buffers and expected sequence numbers
             shioPriAudioBuffer = []
@@ -508,6 +522,34 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 print("\(String(describing: error?.localizedDescription))")
             }
         }
+    }
+    
+    @IBAction func tapPlayButtonLeft(_ sender: Any) {
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioURL = URL(fileURLWithPath: self.baseStringPri, relativeTo: directoryURL).appendingPathExtension("wav")
+        play(url: audioURL)
+    }
+
+    @IBAction func tapPlayButtonRight(_ sender: Any) {
+        let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioURL = URL(fileURLWithPath: self.baseStringSec, relativeTo: directoryURL).appendingPathExtension("wav")
+        play(url: audioURL)
+    }
+    
+    func play(url: URL) {
+        print("playing \(url)")
+        do {
+            let new_url = URL(string: "http://grail.cs.washington.edu/projects/cone-of-silence/assets/audio_comparisons/input.wav")!
+            self.player = AVPlayer(url: url)
+            self.player.play()
+            
+        } catch let error as NSError {
+            //self.player = nil
+            print(error.localizedDescription)
+        } catch {
+            print("AVAudioPlayer init failed")
+        }
+        
     }
     
     @IBAction func tapShioLButton(_ sender: Any) {
