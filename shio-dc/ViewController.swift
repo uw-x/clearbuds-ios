@@ -381,7 +381,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     // Function to create and write the wav files locally from Raw PCM. Returns filename of left and right
     func createWavFile(audioBufferPri: [Int16], audioBufferSec: [Int16]) -> (String, String) {
         // Hard coded params for now
-        let sample_rate =  Float64(12500.0)
+        let sample_rate =  Float64(15625.0)
         let outputFormatSettings = [
             AVFormatIDKey:kAudioFormatLinearPCM,
             AVLinearPCMBitDepthKey: 16,
