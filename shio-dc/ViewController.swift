@@ -367,7 +367,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             let line1 = LineChartDataSet(entries: lineChartEntry1, label: "Mic 1")
             line1.drawCirclesEnabled = false
-            line1.setColor(UIColor(red: 247.0/255.0, green: 86.0/255.0, blue: 0x63/255.0, alpha: 1.0))
+            line1.setColor(UIColor(red: 0.0/255.0, green: 150.0/255.0, blue: 255.0/255.0, alpha: 1.0))
             data.addDataSet(line1)
         }
         
@@ -475,9 +475,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             self.baseStringPri = stringPri
             self.baseStringSec = stringSec
             playButtonLeft.isHidden = false
-            playButtonLeft.setTitle("Play Left Audio", for: .normal)
+            playButtonLeft.setTitle("Play Left", for: .normal)
             playButtonRight.isHidden = false
-            playButtonRight.setTitle("Play Right Audio", for: .normal)
+            playButtonRight.setTitle("Play Right", for: .normal)
+            
+            playButtonLeft.backgroundColor = (UIColor(red: 0.0/255.0, green: 150.0/255.0, blue: 255.0/255.0, alpha: 1.0))
+            playButtonLeft.setTitleColor(UIColor.white, for: .normal)
+            
+            playButtonRight.backgroundColor = (UIColor(red: 0x63/255.0, green: 86.0/255.0, blue: 247.0/255.0, alpha: 1.0))
+            playButtonRight.setTitleColor(UIColor.white, for: .normal)
+            
         } else if (recordingState == RecordingState.done) {
             uploadAudio(baseString: self.baseStringPri)
             uploadAudio(baseString: self.baseStringSec)
