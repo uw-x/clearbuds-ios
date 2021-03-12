@@ -171,6 +171,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         if let pname = peripheral.name {
+            print("Discovered " + pname)
             if (pname == "shio") {
                 
                 peripherals.updateValue(peripheral, forKey: peripheral.identifier)
@@ -282,21 +283,24 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if (peripheral.identifier == self.shioPri.identifier) {
                     if (expectedSequenceNumberPri == actualSequenceNumber) {
                         // Nominal behavior
-                        for i in 1...newPacketLength - 1 {
+                        for i in 1...(newPacketLength - 1) {
                             shioPriAudioBuffer.append(bufferPointerInt16[i])
                         }
-                        
+                                                
                         expectedSequenceNumberPri += 1
                     } else if (actualSequenceNumber > expectedSequenceNumberPri) {
-                        print("PRI actual", actualSequenceNumber, "expected", expectedSequenceNumberPri)
                         // A packet was dropped, fill (actual-expected) worth of packets with zeros
+                        var zerosAdded = 0
                         for _ in 0...(actualSequenceNumber - expectedSequenceNumberPri - 1) {
-                            for _ in 1...newPacketLength - 1 {
+                            for _ in 1...(newPacketLength - 1) {
                                 shioPriAudioBuffer.append(0)
+                                zerosAdded += 1
                             }
                         }
                         
-                        for i in 1...newPacketLength - 1 {
+                        print("PRI actual", actualSequenceNumber, "expected", expectedSequenceNumberPri, "zerosAdded ", zerosAdded)
+                        
+                        for i in 1...(newPacketLength - 1) {
                             shioPriAudioBuffer.append(bufferPointerInt16[i])
                         }
                         
@@ -308,21 +312,24 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 } else if (peripheral.identifier == self.shioSec.identifier) {
                     if (expectedSequenceNumberSec == actualSequenceNumber) {
                         // Nominal behavior
-                        for i in 1...newPacketLength - 1 {
+                        for i in 1...(newPacketLength - 1) {
                             shioSecAudioBuffer.append(bufferPointerInt16[i])
                         }
                         
                         expectedSequenceNumberSec += 1
                     } else if (actualSequenceNumber > expectedSequenceNumberSec) {
-                        print("SEC actual", actualSequenceNumber, "expected", expectedSequenceNumberSec)
                         // A packet was dropped, fill (actual-expected) worth of packets with zeros
+                        var zerosAdded = 0
                         for _ in 0...(actualSequenceNumber - expectedSequenceNumberSec - 1) {
-                            for _ in 1...newPacketLength - 1 {
+                            for _ in 1...(newPacketLength - 1) {
                                 shioSecAudioBuffer.append(0)
+                                zerosAdded += 1
                             }
                         }
                         
-                        for i in 1...newPacketLength - 1 {
+                        print("SEC actual", actualSequenceNumber, "expected", expectedSequenceNumberSec, "zerosAdded ", zerosAdded)
+                        
+                        for i in 1...(newPacketLength - 1) {
                             shioSecAudioBuffer.append(bufferPointerInt16[i])
                         }
                         
