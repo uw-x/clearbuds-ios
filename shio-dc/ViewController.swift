@@ -52,6 +52,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var shioSecControlCharacteristic: CBCharacteristic!
     var peripherals: [UUID: CBPeripheral] = [:]
     var player: AVPlayer!
+    var shioPriMetadataReceived = false
+    var shioSecMetadataReceived = false
+    var shioPriPPIArmed: UInt32 = 400000
+    var shioSecPPIArmed: UInt32 = 400000
+    var misalignedStartCompensated = false
 
     // Actual audio buffers
     var shioPriAudioBuffer : [Int16] = []
@@ -281,64 +286,116 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 
                 // Do something with data
                 if (peripheral.identifier == self.shioPri.identifier) {
-                    if (expectedSequenceNumberPri == actualSequenceNumber) {
-                        // Nominal behavior
-                        for i in 1...(newPacketLength - 1) {
-                            shioPriAudioBuffer.append(bufferPointerInt16[i])
-                        }
-                                                
+                    if (shioPriMetadataReceived == false) {
+                        let shioPriPPIArmedBytes : [UInt8] = [bufferRawBufferPointer[5], bufferRawBufferPointer[4], bufferRawBufferPointer[3], bufferRawBufferPointer[2]]
+                        shioPriPPIArmed = shioPriPPIArmedBytes.withUnsafeBytes{$0.load(as: UInt32.self)}
+                        print("shioPri PPI Armed:", shioPriPPIArmed)
+                        shioPriMetadataReceived = true
                         expectedSequenceNumberPri += 1
-                    } else if (actualSequenceNumber > expectedSequenceNumberPri) {
-                        // A packet was dropped, fill (actual-expected) worth of packets with zeros
-                        var zerosAdded = 0
-                        for _ in 0...(actualSequenceNumber - expectedSequenceNumberPri - 1) {
-                            for _ in 1...(newPacketLength - 1) {
-                                shioPriAudioBuffer.append(0)
-                                zerosAdded += 1
-                            }
-                        }
-                        
-                        print("PRI actual", actualSequenceNumber, "expected", expectedSequenceNumberPri, "zerosAdded ", zerosAdded)
-                        
-                        for i in 1...(newPacketLength - 1) {
-                            shioPriAudioBuffer.append(bufferPointerInt16[i])
-                        }
-                        
-                        expectedSequenceNumberPri = actualSequenceNumber + 1
                     } else {
-                        assert(true) // the expected should never be ahead of the actual
+                        if (expectedSequenceNumberPri == actualSequenceNumber) {
+                            // Nominal behavior
+                            for i in 1...(newPacketLength - 1) {
+                                shioPriAudioBuffer.append(bufferPointerInt16[i])
+                            }
+                                                    
+                            expectedSequenceNumberPri += 1
+                        } else if (actualSequenceNumber > expectedSequenceNumberPri) {
+                            // A packet was dropped, fill (actual-expected) worth of packets with zeros
+                            var zerosAdded = 0
+                            for _ in 0...(actualSequenceNumber - expectedSequenceNumberPri - 1) {
+                                for _ in 1...(newPacketLength - 1) {
+                                    shioPriAudioBuffer.append(0)
+                                    zerosAdded += 1
+                                }
+                            }
+                            
+                            print("PRI actual", actualSequenceNumber, "expected", expectedSequenceNumberPri, "zerosAdded ", zerosAdded)
+                            
+                            for i in 1...(newPacketLength - 1) {
+                                shioPriAudioBuffer.append(bufferPointerInt16[i])
+                            }
+                            
+                            expectedSequenceNumberPri = actualSequenceNumber + 1
+                        } else {
+                            assert(true) // the expected should never be ahead of the actual
+                        }
                     }
-
                 } else if (peripheral.identifier == self.shioSec.identifier) {
-                    if (expectedSequenceNumberSec == actualSequenceNumber) {
-                        // Nominal behavior
-                        for i in 1...(newPacketLength - 1) {
-                            shioSecAudioBuffer.append(bufferPointerInt16[i])
-                        }
-                        
+                    if (shioSecMetadataReceived == false) {
+                        let shioSecPPIArmedBytes : [UInt8] = [bufferRawBufferPointer[5], bufferRawBufferPointer[4], bufferRawBufferPointer[3], bufferRawBufferPointer[2]]
+                        shioSecPPIArmed = shioSecPPIArmedBytes.withUnsafeBytes{$0.load(as: UInt32.self)}
+                        print("shioSec PPI Armed:", shioSecPPIArmed)
+                        shioSecMetadataReceived = true
                         expectedSequenceNumberSec += 1
-                    } else if (actualSequenceNumber > expectedSequenceNumberSec) {
-                        // A packet was dropped, fill (actual-expected) worth of packets with zeros
-                        var zerosAdded = 0
-                        for _ in 0...(actualSequenceNumber - expectedSequenceNumberSec - 1) {
-                            for _ in 1...(newPacketLength - 1) {
-                                shioSecAudioBuffer.append(0)
-                                zerosAdded += 1
-                            }
-                        }
-                        
-                        print("SEC actual", actualSequenceNumber, "expected", expectedSequenceNumberSec, "zerosAdded ", zerosAdded)
-                        
-                        for i in 1...(newPacketLength - 1) {
-                            shioSecAudioBuffer.append(bufferPointerInt16[i])
-                        }
-                        
-                        expectedSequenceNumberSec = actualSequenceNumber + 1
                     } else {
-                        assert(true) // the expected should never be ahead of the actual
+                        if (expectedSequenceNumberSec == actualSequenceNumber) {
+                            // Nominal behavior
+                            for i in 1...(newPacketLength - 1) {
+                                shioSecAudioBuffer.append(bufferPointerInt16[i])
+                            }
+                            
+                            expectedSequenceNumberSec += 1
+                        } else if (actualSequenceNumber > expectedSequenceNumberSec) {
+                            // A packet was dropped, fill (actual-expected) worth of packets with zeros
+                            var zerosAdded = 0
+                            for _ in 0...(actualSequenceNumber - expectedSequenceNumberSec - 1) {
+                                for _ in 1...(newPacketLength - 1) {
+                                    shioSecAudioBuffer.append(0)
+                                    zerosAdded += 1
+                                }
+                            }
+                            
+                            print("SEC actual", actualSequenceNumber, "expected", expectedSequenceNumberSec, "zerosAdded ", zerosAdded)
+                            
+                            for i in 1...(newPacketLength - 1) {
+                                shioSecAudioBuffer.append(bufferPointerInt16[i])
+                            }
+                            
+                            expectedSequenceNumberSec = actualSequenceNumber + 1
+                        } else {
+                            assert(true) // the expected should never be ahead of the actual
+                        }
                     }
                 }
             }
+            
+            // Handle scenario where one starts before the other due to being written at the egde of the clock sync
+            if (shioPriMetadataReceived && shioSecMetadataReceived && !misalignedStartCompensated) {
+                if (abs(Int(shioPriPPIArmed) - Int(shioSecPPIArmed)) < 200000) { // only attempt to compensate if they are within expected bounds (i.e. 300k 500k), reject 700k 20k
+                    if ((shioPriPPIArmed > 400000 && shioSecPPIArmed < 400000) || (shioPriPPIArmed < 400000 && shioSecPPIArmed > 400000)) {
+                        // There is a misalignment
+                        let startOffsetTicks = 800000 // the second shio will wait a full cycle before starting
+                        let startOffsetUs = startOffsetTicks / 16
+                        let singleSampleTimeUs = (1000*1000) / 15625
+                        let samplesToDrop = startOffsetUs / singleSampleTimeUs // should be 781 with 15.625khz sampling rate
+                        
+                        if (shioSecPPIArmed < 400000) {
+                            // Secondary started earlier
+                            if (shioSecAudioBuffer.count > samplesToDrop) {
+                                print("Dropping ", samplesToDrop, " samples from secondary")
+                                shioSecAudioBuffer.removeFirst(Int(samplesToDrop))
+                                misalignedStartCompensated = true
+                            }
+                        } else {
+                            // Primary started earlier
+                            if (shioPriAudioBuffer.count > samplesToDrop) {
+                                print("Dropping ", samplesToDrop, " samples from primary")
+                                shioPriAudioBuffer.removeFirst(Int(samplesToDrop))
+                                misalignedStartCompensated = true
+                            }
+                        }
+                    } else {
+                        // There is no misalignment
+                        misalignedStartCompensated = true
+                        print("No misalignment")
+                    }
+                } else {
+                    misalignedStartCompensated = true
+                    print("No misalignment")
+                }
+            }
+            //
             
             updateCharts()
 
