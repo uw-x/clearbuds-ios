@@ -291,7 +291,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         shioPriPPIArmed = shioPriPPIArmedBytes.withUnsafeBytes{$0.load(as: UInt32.self)}
                         print("shioPri PPI Armed:", shioPriPPIArmed)
                         shioPriMetadataReceived = true
-                        expectedSequenceNumberPri += 1
+                        expectedSequenceNumberPri = expectedSequenceNumberPri &+ 1
                     } else {
                         if (expectedSequenceNumberPri == actualSequenceNumber) {
                             // Nominal behavior
@@ -299,7 +299,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                                 shioPriAudioBuffer.append(bufferPointerInt16[i])
                             }
                                                     
-                            expectedSequenceNumberPri += 1
+                            expectedSequenceNumberPri = expectedSequenceNumberPri &+ 1
                         } else if (actualSequenceNumber > expectedSequenceNumberPri) {
                             // A packet was dropped, fill (actual-expected) worth of packets with zeros
                             var zerosAdded = 0
@@ -316,7 +316,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                                 shioPriAudioBuffer.append(bufferPointerInt16[i])
                             }
                             
-                            expectedSequenceNumberPri = actualSequenceNumber + 1
+                            expectedSequenceNumberPri = actualSequenceNumber &+ 1
                         } else {
                             assert(true) // the expected should never be ahead of the actual
                         }
@@ -327,7 +327,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         shioSecPPIArmed = shioSecPPIArmedBytes.withUnsafeBytes{$0.load(as: UInt32.self)}
                         print("shioSec PPI Armed:", shioSecPPIArmed)
                         shioSecMetadataReceived = true
-                        expectedSequenceNumberSec += 1
+                        expectedSequenceNumberSec = expectedSequenceNumberSec &+ 1
                     } else {
                         if (expectedSequenceNumberSec == actualSequenceNumber) {
                             // Nominal behavior
@@ -335,7 +335,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                                 shioSecAudioBuffer.append(bufferPointerInt16[i])
                             }
                             
-                            expectedSequenceNumberSec += 1
+                            expectedSequenceNumberSec = expectedSequenceNumberSec &+ 1
                         } else if (actualSequenceNumber > expectedSequenceNumberSec) {
                             // A packet was dropped, fill (actual-expected) worth of packets with zeros
                             var zerosAdded = 0
@@ -352,7 +352,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                                 shioSecAudioBuffer.append(bufferPointerInt16[i])
                             }
                             
-                            expectedSequenceNumberSec = actualSequenceNumber + 1
+                            expectedSequenceNumberSec = actualSequenceNumber &+ 1
                         } else {
                             assert(true) // the expected should never be ahead of the actual
                         }
