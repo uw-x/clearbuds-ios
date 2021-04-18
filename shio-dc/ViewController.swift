@@ -567,8 +567,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         var folderName = ""
         if (voiseNoiseControlPicker.selectedSegmentIndex == 0) {
             folderName = "Voice/"
-        } else {
+        } else if (voiseNoiseControlPicker.selectedSegmentIndex == 1) {
+            folderName = "SideVoice/"
+        } else if (voiseNoiseControlPicker.selectedSegmentIndex == 2) {
             folderName = "Noise/"
+        } else {
+            folderName = "NoiseWithSideVoice/"
         }
         
         let uploadNameWithPath = folderName + baseString + ".wav"

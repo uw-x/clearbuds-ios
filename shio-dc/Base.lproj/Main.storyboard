@@ -178,7 +178,9 @@
                                 <rect key="frame" x="30" y="330.5" width="354" height="32"/>
                                 <segments>
                                     <segment title="Voice"/>
-                                    <segment title="Noise"/>
+                                    <segment title="Side Voice"/>
+                                    <segment title="Noise Only"/>
+                                    <segment title="SV + Noise"/>
                                 </segments>
                             </segmentedControl>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UIR-bi-UdE">
