@@ -6,5 +6,6 @@ our network has a runtime of 21.4 ms on an accompanying mobile phone. In-the-wil
 
 ## iOS Setup
 1. Download and install xcode
-2. Open shio-dc.xcworkspace
-3. Build and run on your iOS device (Note: You may need to change the bundle identifier)
+2. Run 'pod install' to setup Pod dependencies for the project. If you don't have Cocoapods installed, please refer to (https://guides.cocoapods.org/using/getting-started.html)
+3. Open shio-dc.xcworkspace
+4. Build and run on your iOS device (Note: You may need to change the bundle identifier)
